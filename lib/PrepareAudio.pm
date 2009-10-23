@@ -14,4 +14,14 @@ sub getaudio
   return $temp;
 }
 
+sub prepareaudio
+{
+  my $tempdir = shift;
+  my $newfile = $tempdir."/resampled.wav";
+
+  system("/usr/bin/sox", qw(-S), "$tempdir/audiodump.wav", qw(-t wav -s -b 16 -r 48000 -c 1), $newfile, qw(lowpass 8k)) == 0
+	or die "Couldn't resample audio, $?";
+  return $newfile;
+}
+
 1;
