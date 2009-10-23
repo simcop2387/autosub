@@ -12,14 +12,18 @@ use Data::Dumper;
 
 use PrepareAudio; #should probably get this to export things, look nicer in here
 use FFTW;
+use Detect;
 
 #currently using tmp, will soon make it a random temp directory
 
 #commented out while working
-PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
-PrepareAudio::prepareaudio("tmp");
+#PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
+#PrepareAudio::prepareaudio("tmp");
 
 my $audio = FFTW::open("tmp");
 my @spects = FFTW::getfftw($audio, "tmp");
 
-
+for my $i (0..$#spects)
+{
+  Detect::hasvoice($spects[$i], $i);
+}
