@@ -10,8 +10,8 @@ use warnings;
 
 $|++;
 
-our $winsize = 16384;
-our $overlap = 2;
+our $winsize = 8192;
+our $overlap = 4;
 my $window = gen_fft_window $winsize, "HANNING";#, 2.5  ;
 
 my $voicequant = gen_fft_window 4096, "GAUSSIAN", 3.141;
@@ -37,9 +37,8 @@ sub getfftw
   my @spects = ();
 
   my $size = nelem($pdl);
-  $size=$winsize*10;
 
-  for my $i (0..$overlap*$size/$winsize)
+  for my $i (0..$overlap*$size/$winsize-$overlap) #take $overlap sections off, since i'm not going to code a resizing window XD
   {
     my $left = int $i*$winsize/$overlap;
     my $right = $left+$winsize-1;
@@ -51,9 +50,9 @@ sub getfftw
 
     push @spects, $y;
 
-    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/test%04d.png', $i));
-    $plot->xyplot($graphx, $y);
-    $plot->close();
+#    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/test%04d.png', $i));
+#    $plot->xyplot($graphx, $y);
+#    $plot->close();
 
     #sleep 10;
 #    print "${left}:$right\n";
