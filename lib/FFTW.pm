@@ -43,7 +43,7 @@ sub getfftw
     my $left = int $i*$winsize/$overlap;
     my $right = $left+$winsize-1;
 
-    print "$left $i ".($overlap*$size/$winsize)."\n";
+    print "$left $i ".($overlap*$size/$winsize)."\n" if (!($i % 50));
 
     my $spect = getwindow($pdl->slice("${left}:$right"));
     my $y = $voicequant * $spect;

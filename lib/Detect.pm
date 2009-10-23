@@ -23,15 +23,14 @@ sub hasvoice
 
 sub cleanup
 {
-  my @maps = @_;
-  my $map = join "", @maps;
+  my $map = shift; #make it easier to run more than once
 
   $_=$map;
 
   s/1101/1111/g; #cleanup places where it missed?
   s/1011/1111/g;
-  s/00011000/00000000/g; #clean up 0.10 seconds in the middle of nothing
-  s/11100111/11111111/g;
+  s/001100/000000/g; #clean up 0.10 seconds in the middle of nothing
+  s/110011/111111/g;
   s/00100/00000/g; #clean up 1's in the middle of nothing
 
   #specific case in output

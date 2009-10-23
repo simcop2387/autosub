@@ -17,8 +17,8 @@ use Detect;
 #currently using tmp, will soon make it a random temp directory
 
 #commented out while working
-PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
-PrepareAudio::prepareaudio("tmp");
+#PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
+#PrepareAudio::prepareaudio("tmp");
 
 my $audio = FFTW::open("tmp");
 my @spects = FFTW::getfftw($audio, "tmp");
@@ -26,4 +26,9 @@ my $i = 0;
 
 my @voicemap = map {Detect::hasvoice($_, $i++)} @spects;
 
-print Detect::cleanup(@voicemap);
+my $map1 = Detect::cleanup(join "", @voicemap);
+my $map2 = Detect::cleanup($map1);
+
+print $map1;
+print "-------------------\n";
+print $map2;
