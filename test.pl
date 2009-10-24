@@ -13,6 +13,7 @@ use Data::Dumper;
 use PrepareAudio; #should probably get this to export things, look nicer in here
 use FFTW;
 use Detect;
+use ExportWav;
 
 #currently using tmp, will soon make it a random temp directory
 
@@ -33,4 +34,4 @@ print $map2,"\n";
 
 my @codes = Detect::collect($map2);
 
-print Dumper(\@codes, scalar @codes);
+ExportWav::makewavs("tmp", $audio, @codes);
