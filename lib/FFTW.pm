@@ -11,7 +11,7 @@ use warnings;
 $|++;
 
 our $winsize = 8192;
-our $overlap = 4;
+our $overlap = 5;
 my $window = gen_fft_window $winsize, "HANNING";#, 2.5  ;
 
 my $voicequant = gen_fft_window 4096, "GAUSSIAN", 3.141;

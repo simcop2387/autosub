@@ -8,7 +8,7 @@ use PDL;
 
 use Data::Dumper;
 
-my $silence = zeroes(48000);
+my $silence = zeroes(8000);
 
 sub writewav
 {
