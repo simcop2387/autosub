@@ -15,6 +15,7 @@ use FFTW;
 use Detect;
 use ExportWav;
 use DoJulius;
+use MakeAss;
 
 #currently using tmp, will soon make it a random temp directory
 
@@ -39,3 +40,5 @@ ExportWav::makewavs("tmp", $audio, @codes);
 my @results = DoJulius::dovoices("tmp", @codes);
 
 print Dumper(\@results);
+
+MakeAss::writeass("tmp", @results);

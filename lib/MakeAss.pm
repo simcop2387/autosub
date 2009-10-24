@@ -4,20 +4,52 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use POSIX;
+use POSIX qw(strftime);
+
+use Time::HiRes; #to get better precision localtime?
 
 use Encode; #help avoid wide print errors
 use utf8;
+
+sub writedialog
+{
+  my $fh = shift;
+  my $code = shift;
+
+#;Dialogue: 0,0:00:19.40,0:00:21.14,Default,,0000,0000,0000,,A courageous heart and deduction power!
+  my ($startsec, $endsec) = ($code->{start}/48000, $code->{finish}/48000);
+
+  my $startfrac = int(($startsec-int($startsec))*100)/100; 
+  my $endfrac   = int(($endsec-  int($endsec))  *100)/100; 
+
+  $startfrac =~ s/^0*//;
+  $endfrac =~ s/^0*//;
+
+  my $starttime = strftime("%H:%M:%S", gmtime($startsec)).$startfrac;
+  my $endtime   = strftime("%H:%M:%S", gmtime($endsec)).$endfrac;
+
+  if (defined($code->{sentence1}) && $code->{sentence1} !~ /^\s*。\s*$/)
+  {
+    print $fh "Dialogue: 0,$starttime,$endtime,Default,,0000,0000,0000,,",$code->{sentence1},"\n";
+  }
+}
 
 sub writeass
 {
   my $tmp = shift;
   my @codes = @_;
 
-  open(my $fh, ">:encoding(utf8)", sprintf("%s/output.ass", $tmp));
-  print $fh <DATA>;
-  close($fh);
+  open(my $fh, ">:encoding(utf8)", sprintf("%s/output.ass", $tmp)) or die "ExportAss: $!";
+  print $fh <DATA>; #print out the header
+
+  for my $code (@codes)
+  {
+    writedialog($fh, $code) if defined($code);
+  }
+  close $fh;
 }
+
+1;
 
 __DATA__
 ﻿[Script Info]
