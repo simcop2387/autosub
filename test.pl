@@ -20,8 +20,8 @@ use MakeAss;
 #currently using tmp, will soon make it a random temp directory
 
 #commented out while working
-PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
-PrepareAudio::prepareaudio("tmp");
+#PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
+#PrepareAudio::prepareaudio("tmp");
 
 my @voicemap;
 my $audio = FFTW::open("tmp");
@@ -29,6 +29,8 @@ my $map0;
 {
   my @spects = FFTW::getfftw($audio, "tmp");
 
+  Detect::autothresh("tmp", @spects);
+  die;
   $map0 = Detect::makemap("tmp", @spects);
 }
 my $map1 = Detect::cleanup($map0);

@@ -30,8 +30,60 @@ sub makemap
   $plot->xyplot($graphx, $linethresh, COLOR => "RED");
   $plot->close();
 
-
   return $map;
+}
+
+sub autothresh
+{
+  my $temp = shift;
+  my @spects = @_;
+  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
+  
+  my $sums = pdl [];
+  $sums = $sums->append(pdl [$_]) for @voices;
+
+  $sums = $sums->qsort(); #quick sort it
+
+  my $left = 0;
+  my $right = $sums->nelem();
+  my $blobs = 0; #or $sums->nelem? dunno yet
+  my $finalthresh = 0;
+  my $target = 350;
+
+  while (1)
+  {
+     my $i = 0;
+     my $newthresh = $sums->index(int(($left + $right)/2)); #get the middle sum
+     my $map = cleanup(cleanup(makemap($temp, @spects))); #make a map
+     
+     $blobs = scalar collect($map);
+
+     if ($left == $right)
+     {
+       $finalthresh = $newthresh;
+       last;
+     }     
+
+     print "Current threshold $newthresh with $blobs blobs\n";
+
+     if ($blobs < $target)
+     {
+       $right = int(($left + $right)/2); #move right to current position
+     }
+     elsif ($blobs > $target)
+     {
+       $left = int(($left + $right)/2); #move the left to current position
+     }
+     else
+     {
+       print "Found Exactly 350 blobs!\n";
+       $finalthresh = $newthresh;
+       last;
+     }
+  }
+  
+  print "Autothreshold found a threshold of $finalthresh with $blobs blobs\n";
+  $threshold = $finalthresh;
 }
 
 sub hasvoice {
@@ -45,7 +97,7 @@ sub hasvoice {
       ( $index * $FFTW::winsize / $FFTW::overlap ) /
       16000;               #(index * ) / samples per second
 
-    print $time, " :: ", $sum, " :: ", $sum > 3 ? 1 : 0, "\n";
+#    print $time, " :: ", $sum, " :: ", $sum > 3 ? 1 : 0, "\n";
 
     return [1, $sum] if $sum > $threshold;
     return [0, $sum];
