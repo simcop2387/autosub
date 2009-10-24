@@ -6,6 +6,8 @@ use warnings;
 use PDL;
 use FFTW;
 
+use Data::Dumper;
+
 our $threshold = 35;
 
 sub makemap
@@ -37,6 +39,7 @@ sub autothresh
 {
   my $temp = shift;
   my @spects = @_;
+  my $i = 0;
   my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
   my $sums = pdl [];
@@ -44,46 +47,29 @@ sub autothresh
 
   $sums = $sums->qsort(); #quick sort it
 
-  my $left = 0;
-  my $right = $sums->nelem();
-  my $blobs = 0; #or $sums->nelem? dunno yet
-  my $finalthresh = 0;
+  my $index = 0;
   my $target = 350;
+  my @candidates;
 
-  while (1)
+  while ($index < $sums->nelem())
   {
-     my $i = 0;
-     my $newthresh = $sums->index(int(($left + $right)/2)); #get the middle sum
+     $threshold = $sums->index($index);
      my $map = cleanup(cleanup(makemap($temp, @spects))); #make a map
      
-     $blobs = scalar collect($map);
+     my $blobs = scalar collect($map);
 
-     if ($left == $right)
-     {
-       $finalthresh = $newthresh;
-       last;
-     }     
+     print "Current threshold $threshold with $blobs blobs\n";
+     push @candidates, [$blobs, $threshold];
 
-     print "Current threshold $newthresh with $blobs blobs\n";
-
-     if ($blobs < $target)
-     {
-       $right = int(($left + $right)/2); #move right to current position
-     }
-     elsif ($blobs > $target)
-     {
-       $left = int(($left + $right)/2); #move the left to current position
-     }
-     else
-     {
-       print "Found Exactly 350 blobs!\n";
-       $finalthresh = $newthresh;
-       last;
-     }
+     $index+=50; #this ought to be configureable
   }
   
-  print "Autothreshold found a threshold of $finalthresh with $blobs blobs\n";
-  $threshold = $finalthresh;
+  my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
+
+  $threshold = $sorted[0][0];
+  $blobs = $sorted[0][1]
+  
+  print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
 }
 
 sub hasvoice {
