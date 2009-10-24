@@ -30,8 +30,12 @@ sub cleanup {
 
     s/1101/1111/g;         #cleanup places where it missed?
     s/1011/1111/g;
+    s/100111/111111/g;
+    s/111001/111111/g;
     s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
     s/110011/111111/g;
+    s/000111000/000000000/g;
+    s/111000111/111111111/g;
     s/00100/00000/g;       #clean up 1's in the middle of nothing
 
     #specific case in output
@@ -62,14 +66,14 @@ sub collect {
         next if ( $sample == 1 && $collecting == 1 );    #don't do anything
 
         if ( $sample == 0 && $collecting == 1 ) {
-            $finish     = $i;                            #gets it +1
+            $finish     = $i+5;                            #gets it +6
             $collecting = 0;
             push @codes, [ $start, $finish ];
             next;
         }
 
         if ( $sample == 1 && $collecting == 0 ) {
-            $start      = $i - 1;    #get 1 before this sample
+            $start      = $i - 6;    #get 6 before this sample
             $collecting = 1;
             next;
         }

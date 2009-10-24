@@ -8,6 +8,8 @@ use PDL;
 
 use Data::Dumper;
 
+my $silence = zeroes(48000);
+
 sub writewav
 {
   my $orig = shift; #original audio file, needed for the header
@@ -18,6 +20,8 @@ sub writewav
   my $fname = sprintf("%s/sample%05d.wav", $tmp, $idx);
 
   my %opts = (%{$orig->gethdr}, path => $fname);
+
+  my $movedslice = concat($silence, $slice, $silence); #wrap in silence for julius to work better
 
   print "Writing WAV: $fname\n";  
   $slice->waudio(%opts);
