@@ -30,7 +30,6 @@ my $map0;
   my @spects = FFTW::getfftw($audio, "tmp");
 
   Detect::autothresh("tmp", @spects);
-  die;
   $map0 = Detect::makemap("tmp", @spects);
 }
 my $map1 = Detect::cleanup($map0);
