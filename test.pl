@@ -31,38 +31,6 @@ my $map2 = Detect::cleanup($map1);
 
 print $map2,"\n";
 
-my @codes;
+my @codes = Detect::collect($map2);
 
-#i'm gonna use map2 here, to get a good list
-$i=-1; #start at -1 for this
-my $start=0;
-my $finish=0;
-my $collecting=1;
-for my $sample (split//,$map2)
-{
- $i++;
- next if ($sample == 1 && $collecting == 1); #don't do anything
- 
- if ($sample == 0 && $collecting == 1)
- {
-  $finish = $i; #gets it +1
-  $collecting = 0;
-  push @codes, [$start, $finish];
-  next;
- }
- 
- if ($sample == 1 && $collecting == 0)
- {
-   $start = $i-1; #get 1 before this sample
-   $collecting = 1;
-   next;
- }
-}
-
-if ($collecting == 1)
-{
-  push @codes, [$start, $i];
-}; #collect the last end of it
-
-
-print Dumper(\@codes);
+print Dumper(\@codes, scalar @codes);

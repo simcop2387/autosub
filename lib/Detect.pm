@@ -37,8 +37,8 @@ sub cleanup {
     #specific case in output
     s/000101000/000000000/g;
 
-    s/000000111000000/000000000000000/g
-      ;    #i should genericise this one, not sure a good way how yet
+    #i should genericise this one, not sure a good way how yet
+    s/000000111000000/000000000000000/g;
     s/111111000111111/111111111111111/g;
 
 #these will get implemented when selecting ranges, it seems to corrupt things too easily when used like this
@@ -76,8 +76,23 @@ sub collect {
 
     if ( $collecting == 1 ) {
         push @codes, [ $start, $i ];
-    }
-    ;                                #collect the last end of it
+    };                                #collect the last end of it
+
+    return trimcodes @codes;
+}
+
+sub trimcodes
+{
+  my @codes = @_;
+  my @trimmed;
+
+  for my $code (@codes)
+  {
+    my $length = $code->[1] - $code->[0];
+    push @trimmed, $code if ($length >= 20); #get ones that 1 or more seconds!
+  }
+
+  return @trimmed;
 }
 
 1;
