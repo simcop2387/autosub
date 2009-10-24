@@ -49,14 +49,15 @@ sub cleanup {
 }
 
 sub collect {
+    my $map = shift;
     my @codes;
 
     #i'm gonna use map2 here, to get a good list
-    $i = -1;    #start at -1 for this
+    my $i = -1;    #start at -1 for this
     my $start      = 0;
     my $finish     = 0;
     my $collecting = 1;
-    for my $sample ( split //, $map2 ) {
+    for my $sample ( split //, $map ) {
         $i++;
         next if ( $sample == 1 && $collecting == 1 );    #don't do anything
 
@@ -78,7 +79,7 @@ sub collect {
         push @codes, [ $start, $i ];
     };                                #collect the last end of it
 
-    return trimcodes @codes;
+    return trimcodes(@codes);
 }
 
 sub trimcodes
@@ -89,10 +90,17 @@ sub trimcodes
   for my $code (@codes)
   {
     my $length = $code->[1] - $code->[0];
-    push @trimmed, $code if ($length >= 20); #get ones that 1 or more seconds!
+    push @trimmed, [map {fullsamples($_)} @$code] if ($length >= 20); #get ones that 1 or more seconds!
   }
 
   return @trimmed;
+}
+
+sub fullsamples
+{
+    my $index = shift;
+    my $time = ( $index * $FFTW::winsize / $FFTW::overlap );
+    $time;
 }
 
 1;
