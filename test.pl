@@ -14,6 +14,7 @@ use PrepareAudio; #should probably get this to export things, look nicer in here
 use FFTW;
 use Detect;
 use ExportWav;
+use DoJulius;
 
 #currently using tmp, will soon make it a random temp directory
 
@@ -30,8 +31,11 @@ my $map0 = join "", @voicemap;
 my $map1 = Detect::cleanup($map0);
 my $map2 = Detect::cleanup($map1);
 
-print $map2,"\n";
+#print $map2,"\n";
 
 my @codes = Detect::collect($map2);
 
 ExportWav::makewavs("tmp", $audio, @codes);
+my @results = DoJulius::dovoices("tmp", @codes);
+
+print Dumper(\@results);

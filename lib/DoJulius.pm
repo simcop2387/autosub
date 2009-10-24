@@ -30,13 +30,16 @@ sub dovoices
 
    for my $i (0..$#codes)
    {
-	my $ret = runsample($i, $tmp);
+        my $ret = 0;
+#	my $ret = runsample($i, $tmp);
 	unless ($ret)
 	{
 		my $hr = readoutput($i, $codes[$i], $tmp);
 		push @newcodes, $hr; #using temp variable so i can check for errors later
 	}
    }
+
+   return @newcodes;
 }
 
 sub readoutput
@@ -45,5 +48,27 @@ sub readoutput
   my $timecodes = shift;
   my $tmp = shift;
 
-  open(my $samplefile, "<:encoding(shiftjis)", sprintf()) or die;
+  my $ret = {};
+
+  #i should probably also be checking the scores here but i'm not sure what they mean just yet :/
+
+  open(my $samplefile, "<:encoding(euc-jp)", sprintf("%s/sample%05d.out", $tmp, $samplenum )) or warn "DECODE: $samplenum, $tmp, $!" and return undef;
+  my @lines = <$samplefile>;
+
+  chomp @lines;
+
+  for (@lines)
+  {
+    my ($l, $r) = split /:/, $_, 2;
+    $ret->{$l} = $r;
+  }
+
+  $ret->{start} = $timecodes->[0];
+  $ret->{finish} = $timecodes->[1];
+
+  print Dumper($ret);
+
+  return $ret;
 }
+
+1;
