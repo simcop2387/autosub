@@ -51,6 +51,8 @@ sub autothresh
   my $index = 0;
   my @candidates;
 
+  my $tarlog = log($target);
+
   while ($index < $sums->nelem())
   {
      $threshold = $sums->index($index);
@@ -60,17 +62,30 @@ sub autothresh
      my $blobs = @results;
 
      my $lengths = pdl [map {$_->[2]} @results];
-     my $avg = $lengths->average();
-     my $std = $lengths->stddev();
 
-     print "Current threshold $threshold with $blobs blobs\n";
-     push @candidates, [$blobs, $threshold, int($avg*10)/10, $std];
+     #print Dumper([map {$_->[2]} @results]);
+#     print "$lengths\n";
+     
+#($mean,$prms,$median,$min,$max,$adev,$rms)
+     my $avg = 0;
+     my $std = 0;
+
+     if ($lengths->nelem() > 0)
+     {
+     ($avg, undef, undef, undef, undef, $std, undef) = $lengths->statsover(ones($lengths->nelem()));
+     }
+
+     $avg =int($avg*10)/10;
+     my $blog = int(log($blobs+1)/$tarlog*10)/10;
+     my $hugh = ((2*$blog) * $avg) / $std;
+     print "Current threshold $threshold with $blobs blobs, avglen $avg, adev $std, hugh == $hugh\n";
+     push @candidates, [$blobs, $threshold, $avg, $std, $blog, $hugh];
 
      $index+=$time; #this ought to be configureable
      #last if ($blobs >= $target); #was faster but i'm not liking the results
   }
   
-  my @sorted = sort {(($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2) || ($a->[2] <=> $b->[2]) || ($b->[3] <=> $a->[3])} @candidates;
+  my @sorted = sort {$a->[5] <=> $b->[5]} @candidates;
 
   $threshold = $sorted[0][1];
   my $blobs = $sorted[0][0];
@@ -118,18 +133,18 @@ sub cleanup {
 
      s/100111/111111/g;
      s/111001/111111/g;
-#    s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
+ #   s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
      s/110011/111111/g;
 #    s/000111000/000000000/g;
      s/111000111/111111111/g;
 #    s/00100/00000/g;       #clean up 1's in the middle of nothing
 
     #specific case in output
-#    s/000101000/000000000/g;
+    s/000101000/000000000/g;
 
     #i should genericise this one, not sure a good way how yet
-#    s/000000111000000/000000000000000/g;
-#    s/111111000111111/111111111111111/g;
+    s/000000111000000/000000000000000/g;
+    s/111111000111111/111111111111111/g;
 
 #these will get implemented when selecting ranges, it seems to corrupt things too easily when used like this
  # s/0111/1111/g; #pick up a little before
@@ -190,7 +205,7 @@ sub trimcodes
 
   for my $code (@codes)
   {
-    my $length = ($code->[1] - $code->[0])/16000;
+    my $length = (fullsamples($code->[1]) - fullsamples($code->[0]))/16000;
     push @trimmed, [(map {fullsamples($_)} @$code), $length] if ($length >= 1.0); #get ones that 1 or more seconds!
   }
 
