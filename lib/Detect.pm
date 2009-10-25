@@ -9,6 +9,7 @@ use FFTW;
 use Data::Dumper;
 
 our $threshold = 40.3661824968879;
+our $target = 350;
 
 sub makemap
 {
@@ -48,7 +49,6 @@ sub autothresh
   $sums = $sums->qsort(); #quick sort it
 
   my $index = 0;
-  my $target = 325;
   my @candidates;
 
   while ($index < $sums->nelem())
@@ -62,6 +62,7 @@ sub autothresh
      push @candidates, [$blobs, $threshold];
 
      $index+=$time; #this ought to be configureable
+     last if ($blobs >= $target);
   }
   
   my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
@@ -158,14 +159,14 @@ sub collect {
 #        }
 
         if ( $sample == 0 && $collecting == 1 ) {
-            $finish     = $i;                            #gets it +6
+            $finish     = $i+2;                            #gets it +3
             $collecting = 0;
             push @codes, [ $start, $finish ];
             next;
         }
 
         if ( $sample == 1 && $collecting == 0 ) {
-            $start      = $i-1;    #get 6 before this sample
+            $start      = $i;    #get 6 before this sample
             $collecting = 1;
             next;
         }
