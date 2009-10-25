@@ -30,8 +30,8 @@ my $map0;
 {
   my @spects = FFTW::getfftw($audio, $tmp);
 
-  Detect::autothresh($tmp, @spects);
-  $map0 = Detect::makemap($tmp, @spects);
+  my @sums = Detect::autothresh($tmp, 85, @spects);
+  $map0 = Detect::makemap($tmp, @sums);
 }
 my $map1 = Detect::cleanup($map0);
 my $map2 = Detect::cleanup($map1);

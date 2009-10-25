@@ -13,17 +13,17 @@ our $threshold = 40.3661824968879;
 sub makemap
 {
   my $temp = shift;
-  my @spects = @_;
+  my @sums = @_;
   my $i = 0;
-  my @voices = map {Detect::hasvoice($_, $i++)} @spects;
+  my @voices = map {Detect::hasvoice($_, $i++)} @sums;
 
-  my $linethresh = zeroes(scalar @spects) + $threshold;
-  my $graphx = sequence(scalar @spects);
+#  my $linethresh = zeroes(scalar @spects) + $threshold;
+#  my $graphx = sequence(scalar @spects);
 
-  my @sums = map {$_->[1]} @voices;  
-  my $pdlsum = pdl [];
+#  my @sums = map {$_->[1]} @voices;  
+#  my $pdlsum = pdl [];
 
-  $pdlsum = $pdlsum->append(pdl([$_])) for @sums;  
+#  $pdlsum = $pdlsum->append(pdl([$_])) for @sums;  
 
   my $map = join "", map {$_->[0]} @voices;
 
@@ -38,12 +38,13 @@ sub makemap
 sub autothresh
 {
   my $temp = shift;
+  my $time = 100 - shift;
   my @spects = @_;
   my $i = 0;
-  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
+  my @sums = map {$_->sum} @spects;
+#  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
-  my $sums = pdl [];
-  $sums = $sums->append(pdl [$_]) for @voices;
+  my $sums = pdl [@sums];
 
   $sums = $sums->qsort(); #quick sort it
 
@@ -54,14 +55,14 @@ sub autothresh
   while ($index < $sums->nelem())
   {
      $threshold = $sums->index($index);
-     my $map = cleanup(cleanup(makemap($temp, @spects))); #make a map
+     my $map = cleanup(cleanup(makemap($temp, @sums))); #make a map
      
      my $blobs = scalar collect($map);
 
      print "Current threshold $threshold with $blobs blobs\n";
      push @candidates, [$blobs, $threshold];
 
-     $index+=25; #this ought to be configureable
+     $index+=$time; #this ought to be configureable
   }
   
   my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
@@ -83,13 +84,14 @@ sub autothresh
   $plot->close();
   
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
+  return @sums;
 }
 
 sub hasvoice {
     my $sample = shift;
     my $index  = shift;    #solely for printing out time indexes to check!
 
-    my $sum = $sample->sum;
+    my $sum = $sample; # ->sum; #optimizing it for this since i'm doing it repeatedly
 
     #my $left = int $i*$winsize/$overlap;
     my $time =

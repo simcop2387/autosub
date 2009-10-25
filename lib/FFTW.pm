@@ -10,7 +10,7 @@ use warnings;
 
 $|++;
 
-our $winsize = 12288;
+our $winsize = 8192;
 our $overlap = 8;
 my $window = gen_fft_window $winsize, "HANNING";#, 2.5  ;
 
