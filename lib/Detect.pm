@@ -49,7 +49,7 @@ sub autothresh
   $sums = $sums->qsort(); #quick sort it
 
   my $index = 0;
-  my $target = 350;
+  my $target = 400;
   my @candidates;
 
   while ($index < $sums->nelem())
@@ -112,24 +112,24 @@ sub cleanup {
     s/1101/1111/g;         #cleanup places where it missed?
     s/1011/1111/g;
 
-    s/100111/111111/g;
-    s/111001/111111/g;
-    s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
-    s/110011/111111/g;
-    s/000111000/000000000/g;
-    s/111000111/111111111/g;
+#    s/100111/111111/g;
+#    s/111001/111111/g;
+#    s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
+#    s/110011/111111/g;
+#    s/000111000/000000000/g;
+#    s/111000111/111111111/g;
     s/00100/00000/g;       #clean up 1's in the middle of nothing
 
     #specific case in output
-    s/000101000/000000000/g;
+#    s/000101000/000000000/g;
 
     #i should genericise this one, not sure a good way how yet
-    s/000000111000000/000000000000000/g;
-    s/111111000111111/111111111111111/g;
+#    s/000000111000000/000000000000000/g;
+#    s/111111000111111/111111111111111/g;
 
 #these will get implemented when selecting ranges, it seems to corrupt things too easily when used like this
-  s/0111/1111/g; #pick up a little before
-  s/1110/1111/g; #a little after!
+ # s/0111/1111/g; #pick up a little before
+ # s/1110/1111/g; #a little after!
 
     return $_;
 }
@@ -159,14 +159,14 @@ sub collect {
 #        }
 
         if ( $sample == 0 && $collecting == 1 ) {
-            $finish     = $i+5;                            #gets it +6
+            $finish     = $i;                            #gets it +6
             $collecting = 0;
             push @codes, [ $start, $finish ];
             next;
         }
 
         if ( $sample == 1 && $collecting == 0 ) {
-            $start      = $i - 6;    #get 6 before this sample
+            $start      = $i-1;    #get 6 before this sample
             $collecting = 1;
             next;
         }

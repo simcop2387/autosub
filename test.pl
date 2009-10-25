@@ -30,7 +30,7 @@ my $map0;
 {
   my @spects = FFTW::getfftw($audio, $tmp);
 
-  my @sums = Detect::autothresh($tmp, 85, @spects);
+  my @sums = Detect::autothresh($tmp, 70, @spects);
   $map0 = Detect::makemap($tmp, @sums);
 }
 my $map1 = Detect::cleanup($map0);
@@ -50,4 +50,4 @@ my $i = 0;
 my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++}} @codes;
 
 print Dumper(\@results);
-MakeAss::writeass($tmp, "fake2.ass", @results);
+MakeAss::writeass($tmp, "fake3.ass", @results);
