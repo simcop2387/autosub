@@ -11,7 +11,7 @@ use warnings;
 $|++;
 
 our $winsize = 8192;
-our $overlap = 8; #MUCHORAMO
+our $overlap = 20;
 my $window = gen_fft_window $winsize, "GAUSSIAN", 4.5;
 
 my $voicequant = gen_fft_window 4096, "GAUSSIAN", 4.5;
@@ -48,7 +48,7 @@ sub getfftw
     my $spect = getwindow($pdl->slice("${left}:$right"));
     my $y = $voicequant * $spect;
 
-    push @spects, $y;
+    push @spects, $y->sum;
 
 #    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/test%04d.png', $i));
 #    $plot->xyplot($graphx, $y);
@@ -58,7 +58,7 @@ sub getfftw
 #    print "${left}:$right\n";
   }
 
-  return @spects;
+  return \@spects;
 }
 
 sub getwindow

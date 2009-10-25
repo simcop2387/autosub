@@ -28,10 +28,10 @@ my @voicemap;
 my $audio = FFTW::open($tmp);
 my $map0;
 {
-  my @spects = FFTW::getfftw($audio, $tmp);
+  my $sums = FFTW::getfftw($audio, $tmp);
 
-  my $sums = Detect::autothresh($tmp, 70, @spects);
-  $map0 = Detect::makemap($tmp, $sums);
+  Detect::autothresh($tmp, 70, $sums);
+  $map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums)));
 }
 
 print $map0,"\n";

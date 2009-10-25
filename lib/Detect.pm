@@ -41,10 +41,10 @@ sub autothresh
   my $temp = shift;
   my $time = 100 - shift;
   my $i = 0;
-  my @sums = map {$_->sum} @_; #@spects
+  my $sums_ = shift; #@spects
 #  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
-  my $sums = pdl [@sums];
+  my $sums = pdl [@$sums_];
 
   $sums = $sums->qsort(); #quick sort it
 
@@ -54,7 +54,7 @@ sub autothresh
   while ($index < $sums->nelem())
   {
      $threshold = $sums->index($index);
-     my $map = makemap($temp, \@sums); #make a map
+     my $map = cleanup(cleanup(makemap($temp, $sums_))); #make a map
      
      my $blobs = scalar collect($map);
 
@@ -84,7 +84,6 @@ sub autothresh
   $plot->close();
   
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
-  return \@sums;
 }
 
 sub hasvoice {
@@ -118,7 +117,7 @@ sub cleanup {
 #    s/110011/111111/g;
 #    s/000111000/000000000/g;
 #    s/111000111/111111111/g;
-    s/00100/00000/g;       #clean up 1's in the middle of nothing
+#    s/00100/00000/g;       #clean up 1's in the middle of nothing
 
     #specific case in output
 #    s/000101000/000000000/g;
