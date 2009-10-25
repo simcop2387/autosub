@@ -27,10 +27,10 @@ sub makemap
 
   my $map = join "", map {$_->[0]} @voices;
 
-  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/spectrum.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($graphx, $pdlsum, COLOR => "BLUE");
-  $plot->xyplot($graphx, $linethresh, COLOR => "RED");
-  $plot->close();
+#  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/spectrum.png', PAGESIZE=>[1600,1000]);
+#  $plot->xyplot($graphx, $pdlsum, COLOR => "BLUE");
+#  $plot->xyplot($graphx, $linethresh, COLOR => "RED");
+#  $plot->close();
 
   return $map;
 }
@@ -66,8 +66,8 @@ sub autothresh
   
   my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
 
-  $threshold = $sorted[0][0];
-  $blobs = $sorted[0][1]
+  $threshold = $sorted[0][1];
+  my $blobs = $sorted[0][0];
   
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
 }
