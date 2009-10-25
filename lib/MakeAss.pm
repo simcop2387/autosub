@@ -37,9 +37,10 @@ sub writedialog
 sub writeass
 {
   my $tmp = shift;
+  my $file = shift;
   my @codes = @_;
 
-  open(my $fh, ">:encoding(utf8)", sprintf("%s/output.ass", $tmp)) or die "ExportAss: $!";
+  open(my $fh, ">:encoding(utf8)", sprintf("%s/%s", $tmp, $file)) or die "ExportAss: $!";
   print $fh <DATA>; #print out the header
 
   for my $code (@codes)

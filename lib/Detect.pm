@@ -8,7 +8,7 @@ use FFTW;
 
 use Data::Dumper;
 
-our $threshold = 35;
+our $threshold = 40.3661824968879;
 
 sub makemap
 {
@@ -61,13 +61,26 @@ sub autothresh
      print "Current threshold $threshold with $blobs blobs\n";
      push @candidates, [$blobs, $threshold];
 
-     $index+=50; #this ought to be configureable
+     $index+=25; #this ought to be configureable
   }
   
   my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
 
   $threshold = $sorted[0][1];
   my $blobs = $sorted[0][0];
+
+  my $x = pdl [];
+  my $y = pdl [];
+
+  for (@candidates)
+  {
+    $x = $x->append(pdl [$_->[1]]);
+    $y = $y->append(pdl [$_->[0]]);
+  }
+
+  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/thresholds.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($x, $y, COLOR => "BLUE");
+  $plot->close();
   
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
 }

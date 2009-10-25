@@ -18,19 +18,20 @@ use DoJulius;
 use MakeAss;
 
 #currently using tmp, will soon make it a random temp directory
-
+my $tmp = "tmp552";
 #commented out while working
-PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", "tmp");
-PrepareAudio::prepareaudio("tmp");
+#PrepareAudio::getaudio("/mnt/huge/torrents/Detective Conan - 551 [DCTP][98C947A7].avi", $tmp);
+#PrepareAudio::getaudio("552raw.mp4", $tmp);
+#PrepareAudio::prepareaudio($tmp);
 
 my @voicemap;
-my $audio = FFTW::open("tmp");
+my $audio = FFTW::open($tmp);
 my $map0;
 {
-  my @spects = FFTW::getfftw($audio, "tmp");
+  my @spects = FFTW::getfftw($audio, $tmp);
 
-  Detect::autothresh("tmp", @spects);
-  $map0 = Detect::makemap("tmp", @spects);
+  Detect::autothresh($tmp, @spects);
+  $map0 = Detect::makemap($tmp, @spects);
 }
 my $map1 = Detect::cleanup($map0);
 my $map2 = Detect::cleanup($map1);
@@ -40,9 +41,13 @@ sleep 10;
 
 my @codes = Detect::collect($map2);
 
-ExportWav::makewavs("tmp", $audio, @codes);
-my @results = DoJulius::dovoices("tmp", @codes);
+
+ExportWav::makewavs($tmp, $audio, @codes);
+#my @results = DoJulius::dovoices($tmp, @codes);
+
+#print Dumper(\@results);
+my $i = 0;
+my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++}} @codes;
 
 print Dumper(\@results);
-
-MakeAss::writeass("tmp", @results);
+MakeAss::writeass($tmp, "fake2.ass", @results);

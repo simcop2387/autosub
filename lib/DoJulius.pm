@@ -23,7 +23,8 @@ sub runsample
 
 sub runjulius
 {
-  system ('for i in tmp/sample*.wav; do echo $i| julius -C fast.jconf -outfile -input file -gprune none -tmix 4 -n 20 -confnet; done')
+  my $tmp = shift;
+  system ('for i in '.$tmp.'/sample*.wav; do echo $i| julius -C fast.jconf -outfile -input file -gprune none -tmix 4 -n 20 -confnet; done')
 }
 
 sub dovoices
@@ -33,7 +34,7 @@ sub dovoices
 
    my @newcodes;
 
-   runjulius();
+   runjulius($tmp);
 
    for my $i (0..$#codes)
    {
