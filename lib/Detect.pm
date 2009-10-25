@@ -13,9 +13,9 @@ our $threshold = 40.3661824968879;
 sub makemap
 {
   my $temp = shift;
-  my @sums = @_;
+  my $sums = shift;
   my $i = 0;
-  my @voices = map {Detect::hasvoice($_, $i++)} @sums;
+  my @voices = map {Detect::hasvoice($_, $i++)} @$sums;
 
 #  my $linethresh = zeroes(scalar @spects) + $threshold;
 #  my $graphx = sequence(scalar @spects);
@@ -39,9 +39,8 @@ sub autothresh
 {
   my $temp = shift;
   my $time = 100 - shift;
-  my @spects = @_;
   my $i = 0;
-  my @sums = map {$_->sum} @spects;
+  my @sums = map {$_->sum} @_; #@spects
 #  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
   my $sums = pdl [@sums];
@@ -49,13 +48,13 @@ sub autothresh
   $sums = $sums->qsort(); #quick sort it
 
   my $index = 0;
-  my $target = 400;
+  my $target = 325;
   my @candidates;
 
   while ($index < $sums->nelem())
   {
      $threshold = $sums->index($index);
-     my $map = makemap($temp, @sums); #make a map
+     my $map = makemap($temp, \@sums); #make a map
      
      my $blobs = scalar collect($map);
 
@@ -84,7 +83,7 @@ sub autothresh
   $plot->close();
   
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
-  return @sums;
+  return \@sums;
 }
 
 sub hasvoice {
@@ -187,7 +186,7 @@ sub trimcodes
   for my $code (@codes)
   {
     my $length = $code->[1] - $code->[0];
-    push @trimmed, [map {fullsamples($_)} @$code] if ($length >= 20); #get ones that 1 or more seconds!
+    push @trimmed, [map {fullsamples($_)} @$code] if ($length >= 10); #get ones that 1 or more seconds!
   }
 
   return @trimmed;
