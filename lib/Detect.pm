@@ -55,7 +55,7 @@ sub autothresh
   while ($index < $sums->nelem())
   {
      $threshold = $sums->index($index);
-     my $map = cleanup(cleanup(makemap($temp, @sums))); #make a map
+     my $map = makemap($temp, @sums); #make a map
      
      my $blobs = scalar collect($map);
 

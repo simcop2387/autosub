@@ -11,7 +11,7 @@ use warnings;
 $|++;
 
 our $winsize = 8192;
-our $overlap = 10; #MUCHORAMO
+our $overlap = 8; #MUCHORAMO
 my $window = gen_fft_window $winsize, "HANNING";#, 2.5  ;
 
 my $voicequant = gen_fft_window 4096, "GAUSSIAN", 4.5;

@@ -33,13 +33,10 @@ my $map0;
   my @sums = Detect::autothresh($tmp, 70, @spects);
   $map0 = Detect::makemap($tmp, @sums);
 }
-my $map1 = Detect::cleanup($map0);
-my $map2 = Detect::cleanup($map1);
 
-print $map2,"\n";
-sleep 10;
+print $map0,"\n";
 
-my @codes = Detect::collect($map2);
+my @codes = Detect::collect($map0);
 
 
 ExportWav::makewavs($tmp, $audio, @codes);
@@ -50,4 +47,4 @@ my $i = 0;
 my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++}} @codes;
 
 print Dumper(\@results);
-MakeAss::writeass($tmp, "fake3.ass", @results);
+MakeAss::writeass($tmp, "fake4.ass", @results);
