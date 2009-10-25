@@ -9,7 +9,7 @@ use FFTW;
 use Data::Dumper;
 
 our $threshold = 40.3661824968879;
-our $target = 350;
+our $target = 300;
 
 sub makemap
 {
@@ -56,16 +56,21 @@ sub autothresh
      $threshold = $sums->index($index);
      my $map = cleanup(cleanup(makemap($temp, $sums_))); #make a map
      
-     my $blobs = scalar collect($map);
+     my @results = collect($map);
+     my $blobs = @results;
+
+     my $lengths = pdl [map {$_->[2]} @results];
+     my $avg = $lengths->average();
+     my $std = $lengths->stddev();
 
      print "Current threshold $threshold with $blobs blobs\n";
-     push @candidates, [$blobs, $threshold];
+     push @candidates, [$blobs, $threshold, int($avg*10)/10, $std];
 
      $index+=$time; #this ought to be configureable
-     last if ($blobs >= $target);
+     #last if ($blobs >= $target); #was faster but i'm not liking the results
   }
   
-  my @sorted = sort {($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2} @candidates;
+  my @sorted = sort {(($a->[0] - $target) ** 2 <=> ($b->[0] - $target)**2) || ($a->[2] <=> $b->[2]) || ($b->[3] <=> $a->[3])} @candidates;
 
   $threshold = $sorted[0][1];
   my $blobs = $sorted[0][0];
@@ -111,12 +116,12 @@ sub cleanup {
     s/1101/1111/g;         #cleanup places where it missed?
     s/1011/1111/g;
 
-#    s/100111/111111/g;
-#    s/111001/111111/g;
+     s/100111/111111/g;
+     s/111001/111111/g;
 #    s/001100/000000/g;     #clean up 0.10 seconds in the middle of nothing
-#    s/110011/111111/g;
+     s/110011/111111/g;
 #    s/000111000/000000000/g;
-#    s/111000111/111111111/g;
+     s/111000111/111111111/g;
 #    s/00100/00000/g;       #clean up 1's in the middle of nothing
 
     #specific case in output
@@ -185,8 +190,8 @@ sub trimcodes
 
   for my $code (@codes)
   {
-    my $length = $code->[1] - $code->[0];
-    push @trimmed, [map {fullsamples($_)} @$code] if ($length >= 10); #get ones that 1 or more seconds!
+    my $length = ($code->[1] - $code->[0])/16000;
+    push @trimmed, [(map {fullsamples($_)} @$code), $length] if ($length >= 1.0); #get ones that 1 or more seconds!
   }
 
   return @trimmed;

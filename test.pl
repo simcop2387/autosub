@@ -44,7 +44,7 @@ ExportWav::makewavs($tmp, $audio, @codes);
 
 #print Dumper(\@results);
 my $i = 0;
-my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++}} @codes;
+my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++, length=>($_->[1]-$_->[0])/16000.0}} @codes;
 
 print Dumper(\@results);
 MakeAss::writeass($tmp, "fake4.ass", @results);
