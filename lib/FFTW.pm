@@ -11,10 +11,10 @@ use warnings;
 $|++;
 
 our $winsize = 8192;
-our $overlap = 8;
-my $window = gen_fft_window $winsize, "GAUSSIAN", 4.5;
+our $overlap = 10;
+my $window = gen_fft_window $winsize, "HANNING";#, 2.5;
 
-my $voicequant = gen_fft_window 4096, "GAUSSIAN", 4.5;
+my $voicequant = gen_fft_window 4096, "GAUSSIAN", 5.5;
 
 $voicequant = concat($voicequant, zeroes($winsize/2+1 - 4096));
 

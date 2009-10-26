@@ -2,6 +2,7 @@ package Detect;
 
 use strict;
 use warnings;
+use diagnostics;
 
 use PDL;
 use FFTW;
@@ -76,33 +77,50 @@ sub autothresh
      }
 
      $avg =int($avg*10)/10;
-     my $blog = int(log($blobs+1)/$tarlog*10)/10;
-     my $hugh = ((2*$blog) * $avg) / $std;
-     print "Current threshold $threshold with $blobs blobs, avglen $avg, adev $std, hugh == $hugh\n";
+     my $blog = log($blobs+1)/$tarlog;
+     my $hugh = ($blog**2 * $avg) / ($std+1);
+     if ($blobs == 1 || $std == 0) #remove stupid outliers
+     {$hugh = pdl [0];
+      $avg = 0;#remove them from the graphs
+      $std = 0;
+     }
+     $hugh = $hugh->sum();
+     print "threshold $threshold blobs $blobs blogs $blog, avglen $avg, adev $std, hugh == $hugh\n";
      push @candidates, [$blobs, $threshold, $avg, $std, $blog, $hugh];
 
      $index+=$time; #this ought to be configureable
      #last if ($blobs >= $target); #was faster but i'm not liking the results
   }
   
-  my @sorted = sort {$a->[5] <=> $b->[5]} @candidates;
+  my $x = pdl [map {$_->[1]} @candidates];
+  my $yblobs = pdl [map {$_->[0]} @candidates];
+  my $yhughs = pdl [map {$_->[5]} @candidates];
+  my $yavgs  = pdl [map {$_->[2]} @candidates];
+  my $ystds  = pdl [map {$_->[3]} @candidates];
+
+  my  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/thresholds.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($x, $yblobs, COLOR => "BLUE", XLAB => "threshold", YLAB => "blobs");
+  $plot->close();
+
+  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/hughs.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($x, $yhughs, COLOR => "RED", XLAB => "threshold", YLAB => "hugh values");
+  $plot->close();
+
+  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/avgs.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($x, $yavgs, COLOR => "GREEN", XLAB => "threshold", YLAB => "average length of speech");
+  $plot->close();
+
+  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/stds.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($x, $ystds, COLOR => "YELLOW", XLAB => "threshold", YLAB => "std dev of length of speech");
+  $plot->close();
+
+  my @sorted = sort {($b->[5]) <=> ($a->[5])} @candidates;
+
+  print Dumper(\@sorted);
 
   $threshold = $sorted[0][1];
   my $blobs = $sorted[0][0];
 
-  my $x = pdl [];
-  my $y = pdl [];
-
-  for (@candidates)
-  {
-    $x = $x->append(pdl [$_->[1]]);
-    $y = $y->append(pdl [$_->[0]]);
-  }
-
-  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/thresholds.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($x, $y, COLOR => "BLUE");
-  $plot->close();
-  
   print "Autothreshold found a threshold of $threshold with $blobs blobs\n";
 }
 
@@ -147,6 +165,8 @@ sub cleanup {
     s/111111000111111/111111111111111/g;
 
 #these will get implemented when selecting ranges, it seems to corrupt things too easily when used like this
+ s/000111/001111/g; #grow it a little without causing it to join
+ s/111000/111100/g;
  # s/0111/1111/g; #pick up a little before
  # s/1110/1111/g; #a little after!
 
