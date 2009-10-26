@@ -6,9 +6,9 @@ use PDL::Audio;
 
 my $winsize=8192;
 
-my $voicequant = gen_fft_window 4096, "GAUSSIAN", 5.5;
+my $voicequant = gen_fft_window 4096, "GAUSSIAN", 2.5;
 
-$voicequant = concat($voicequant, zeroes($winsize/2+1 - 4096));
+$voicequant = $voicequant->append(zeroes($winsize/2+1 - $voicequant->nelem));
 
 my $graphx = sequence($winsize/2+1);
 
@@ -16,3 +16,18 @@ my $graphx = sequence($winsize/2+1);
     $plot->xyplot($graphx, $voicequant);
     $plot->close();
 
+my $vqlop = pdl [];
+
+my $vqsize = $voicequant->nelem-1;
+my $blog = log($vqsize);
+for my $i (1..$vqsize)
+{
+  my $logi = int((log($i)/$blog)*$vqsize);
+  $vqlop = $vqlop->append($voicequant->index($logi));
+}
+
+$vqlop = $vqlop->append(zeroes($winsize/2+1 - $vqlop->nelem));
+
+    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE =>'test2.png');
+    $plot->xyplot($graphx, $vqlop);
+    $plot->close();
