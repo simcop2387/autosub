@@ -9,6 +9,8 @@ use FFTW;
 
 use Data::Dumper;
 
+use List::MoreUtils "uniq";
+
 our $threshold = 40.3661824968879;
 our $target = 300;
 
@@ -19,20 +21,21 @@ sub makemap
   my $i = 0;
   my @voices = map {Detect::hasvoice($_, $i++)} @$sums;
 
-#  my $linethresh = zeroes(scalar @spects) + $threshold;
-#  my $graphx = sequence(scalar @spects);
+  my $linethresh = zeroes(scalar @$sums) + $threshold;
+  my $graphx = sequence(scalar @$sums);
 
 #  my @sums = map {$_->[1]} @voices;  
 #  my $pdlsum = pdl [];
 
 #  $pdlsum = $pdlsum->append(pdl([$_])) for @sums;  
+  my $pdlsum = pdl $sums;
 
   my $map = join "", map {$_->[0]} @voices;
 
-#  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/spectrum.png', PAGESIZE=>[1600,1000]);
-#  $plot->xyplot($graphx, $pdlsum, COLOR => "BLUE");
-#  $plot->xyplot($graphx, $linethresh, COLOR => "RED");
-#  $plot->close();
+  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/profile.png', PAGESIZE=>[1600,1000]);
+  $plot->xyplot($graphx, $pdlsum, COLOR => "BLUE");
+  $plot->xyplot($graphx, $linethresh, COLOR => "RED");
+  $plot->close();
 
   return $map;
 }
@@ -45,7 +48,7 @@ sub autothresh
   my $sums_ = shift; #@spects
 #  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
-  my $sums = pdl [@$sums_];
+  my $sums = pdl [uniq(grep {$_ != 0} @$sums_)];
 
   $sums = $sums->qsort(); #quick sort it
 
@@ -98,20 +101,20 @@ sub autothresh
   my $yavgs  = pdl [map {$_->[2]} @candidates];
   my $ystds  = pdl [map {$_->[3]} @candidates];
 
-  my  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/thresholds.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($x, $yblobs, COLOR => "BLUE", XLAB => "threshold", YLAB => "blobs");
+  my  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/autothresh.png', PAGESIZE=>[3200,2000]);
+  $plot->xyplot($x, $yblobs, COLOR => "BLUE", XLAB => "threshold", YLAB => "blobs", CHARSIZE=>0.25);
   $plot->close();
 
-  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/hughs.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($x, $yhughs, COLOR => "RED", XLAB => "threshold", YLAB => "hugh values");
+  $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/hughs.png', PAGESIZE=>[3200,2000]);
+  $plot->xyplot($x, $yhughs, COLOR => "RED", XLAB => "threshold", YLAB => "hugh values", CHARSIZE=>0.25);
   $plot->close();
 
   $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/avgs.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($x, $yavgs, COLOR => "GREEN", XLAB => "threshold", YLAB => "average length of speech");
+  $plot->xyplot($x, $yavgs, COLOR => "GREEN", XLAB => "threshold", YLAB => "average length of speech", CHARSIZE=>0.25);
   $plot->close();
 
   $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/stds.png', PAGESIZE=>[1600,1000]);
-  $plot->xyplot($x, $ystds, COLOR => "YELLOW", XLAB => "threshold", YLAB => "std dev of length of speech");
+  $plot->xyplot($x, $ystds, COLOR => "YELLOW", XLAB => "threshold", YLAB => "std dev of length of speech", CHARSIZE=>0.25);
   $plot->close();
 
   my @sorted = sort {($b->[5]) <=> ($a->[5])} @candidates;
