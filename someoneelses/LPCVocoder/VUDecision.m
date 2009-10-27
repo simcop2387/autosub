@@ -47,6 +47,12 @@ function Voice=VUDecision(WBlkData,W,m)
       y(3)=sum1/sqrt(sum2*sum3); %autocorrelation? i would have done these in the reverse order and removed the need for sum2, saves time and memory
       
 %what the fuck is this next block?
+%l is 1 to three, selecting the stuff from y?
+%d(l) must be transformed y(l), not sure what W and m are yet, need to find reference elsewhere
+%w and m are training matrixes
+%that makes me think that its applying something to them, not sure what
+% what is the .' operator here? and is .'* a single operator or, .' and * seperate
+% need to learn about matrixes in matlab!
       for l=1:3
          d(l)=(y.'-m(:,l)).'*inv(W(:,:,l))*(y.'-m(:,l));
       end
