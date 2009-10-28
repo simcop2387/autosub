@@ -12,30 +12,34 @@ use Data::Dumper;
 use List::MoreUtils "uniq";
 
 our $threshold = 40.3661824968879;
-our $target = 300;
+our $target = 200;
 
 sub makemap
 {
   my $temp = shift;
   my $sums = shift;
+  my $graphit = shift;
   my $i = 0;
   my @voices = map {Detect::hasvoice($_, $i++)} @$sums;
-
-  my $linethresh = zeroes(scalar @$sums) + $threshold;
-  my $graphx = sequence(scalar @$sums);
 
 #  my @sums = map {$_->[1]} @voices;  
 #  my $pdlsum = pdl [];
 
 #  $pdlsum = $pdlsum->append(pdl([$_])) for @sums;  
-  my $pdlsum = pdl $sums;
 
-  my $map = join "", map {$_->[0]} @voices;
+  my $map = join "", @voices;
+
+  if ($graphit)
+  {
+  my $linethresh = zeroes(scalar @$sums) + $threshold;
+  my $graphx = sequence(scalar @$sums);
 
   my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/profile.png', PAGESIZE=>[1600,1000]);
+  my $pdlsum = pdl $sums;
   $plot->xyplot($graphx, $pdlsum, COLOR => "BLUE");
   $plot->xyplot($graphx, $linethresh, COLOR => "RED");
   $plot->close();
+  }
 
   return $map;
 }
@@ -81,7 +85,7 @@ sub autothresh
 
      $avg =int($avg*10)/10;
      my $blog = log($blobs+1)/$tarlog;
-     my $hugh = ($blog**2 * $avg) / ($std+1);
+     my $hugh = (($blog)**2 + $avg) / ($std+1);
      if ($blobs == 1 || $std == 0) #remove stupid outliers
      {$hugh = pdl [0];
       $avg = 0;#remove them from the graphs
@@ -131,17 +135,17 @@ sub hasvoice {
     my $sample = shift;
     my $index  = shift;    #solely for printing out time indexes to check!
 
-    my $sum = $sample; # ->sum; #optimizing it for this since i'm doing it repeatedly
+    #my $sum = $sample; # ->sum; #optimizing it for this since i'm doing it repeatedly
 
     #my $left = int $i*$winsize/$overlap;
-    my $time =
-      ( $index * $FFTW::winsize / $FFTW::overlap ) /
-      16000;               #(index * ) / samples per second
+#    my $time =
+#      ( $index * $FFTW::winsize / $FFTW::overlap ) /
+#      16000;               #(index * ) / samples per second
 
 #    print $time, " :: ", $sum, " :: ", $sum > 3 ? 1 : 0, "\n";
 
-    return [1, $sum] if $sum > $threshold;
-    return [0, $sum];
+    return 1 if $sample > $threshold;
+    return 0;
 }
 
 sub cleanup {

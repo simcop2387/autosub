@@ -17,6 +17,8 @@ use ExportWav;
 use DoJulius;
 use MakeAss;
 
+our $PP_VERBOSE=1;
+
 #currently using tmp, will soon make it a random temp directory
 my $tmp = "tmp552";
 #commented out while working
@@ -34,7 +36,7 @@ my $map0;
   my $sums = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
 
   Detect::autothresh($tmp, 0, $sums);
-  $map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums)));
+  $map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums, 1)));
 }
 
 print $map0,"\n";

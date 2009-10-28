@@ -4,6 +4,7 @@ use PDL;
 use PDL::Audio;
 use PDL::Graphics::PLplot;
 use Data::Dumper;
+use Clipcode;
 
 use strict;
 use warnings;
@@ -12,47 +13,34 @@ $|++;
 
 our $winsize = 8192;
 our $overlap = 10;
-my $window = gen_fft_window $winsize, "HANNING";#, 2.5;
+#they recommended hamming, gonna try it and their butterworth!
+my $window = gen_fft_window $winsize, "HAMMING";#, 2.5;
 
-#my $voicequant = gen_fft_window 4096, "GAUSSIAN", 5.5;
+sub butterworth
+{
+  my $w = shift;
+  my $wc = shift;
+  my $o = shift;
 
-#$voicequant = concat($voicequant, zeroes($winsize/2+1 - 4096));
-
-#my $graphx = sequence($winsize/2+1);
-
-#test code imported from testcurve.pl, hopefull should give me a better response than the other one
-###########################################
-#!/usr/bin/perl
-#my $winsize=8192;
-
-my $voicequant = gen_fft_window 4096, "GAUSSIAN", 2.0;
-
-$voicequant = $voicequant->append(zeroes($winsize/2+1 - $voicequant->nelem));
+#1/(1 + (w/w0)^(2*o))
+  return 1/(1+ ($w/$wc)**(2*$o));
+#(($ssq + 0.3902 * $s + 1)*($ssq  + 1.1111 * $s + 1)*($ssq + 1.6629 * $s + 1)*($ssq  + 1.9616 * $s + 1))
+}
 
 my $graphx = sequence($winsize/2+1);
 
-    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE =>'test.png');
-    $plot->xyplot($graphx, $voicequant);
-    $plot->close();
+my $pi = 3.141592;
+my $w = 2*$pi*$graphx/$winsize; #use graphx as the freq source for this
+my $wc = $pi*9/40; #borrowed from the vocoder thingy
+my $voicequant = butterworth($w, $wc, 10); #10th order butterworth
 
-my $vqlop = pdl [];
+#my $voicequant = gen_fft_window 4096, "GAUSSIAN", 2.0;
 
-my $vqsize = $voicequant->nelem-1;
-my $blog = log($vqsize*8);
-for my $i (1..$vqsize)
-{
-  my $logi = int((log($i)/$blog)*$vqsize);
-  $vqlop = $vqlop->append($voicequant->index($logi));
-}
+#$voicequant = $voicequant->append(zeroes($winsize/2+1 - $voicequant->nelem));
 
-$vqlop = $vqlop->append(zeroes($winsize/2+1 - $vqlop->nelem));
-#$vqlop = $vqlop + $voicequant/1.1;
-#$vqlop = $voicequant;
-
-#    my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE =>'test2.png');
-#    $plot->xyplot($graphx, $vqlop);
-#    $plot->close();
-###########################################
+my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE =>'test.png');
+$plot->xyplot($graphx, $voicequant);
+$plot->close();
 
 sub open
 {
@@ -94,6 +82,38 @@ sub isignored
   return $r;
 }
 
+sub sign
+{
+  $_[0] > 0? 1 : -1;
+}
+
+sub clipit
+{
+  my $fltx = shift;
+
+  my $K = 0.6;
+
+  my $fthrd = $fltx->slice("0:".int($fltx->nelem/3));
+  my $sthrd = $fltx->slice(($fltx->nelem-1-int($fltx->nelem/3)).":".$fltx->nelem-1);
+  
+  my $fmax1 = $fthrd->abs()->max();
+  my $fmax2 = $sthrd->abs()->max();
+  my $C = $K * ($fmax1>$fmax2?$fmax2:$fmax1);
+
+  #this might need redoing in PDL::PP or something
+#  my @res;
+#  for my $i (0..$fltx->nelem-1)
+#  {
+#    my $val = $fltx->index($i);
+#    $val = ($val - $C*sign($val)) if ($val > $C || $val < -$C);
+#    push @res, $val;
+#  }
+
+  my $res = $fltx->myclip($C);
+
+  return $res;
+}
+
 sub getfftw
 {
   my $pdl = shift;
@@ -112,17 +132,19 @@ sub getfftw
       my $right = $left+$winsize-1;
 
       my $spect = getwindow($pdl->slice("${left}:$right"));
-      my $y = $vqlop * $spect;
+      my $y = $voicequant * $spect;
+      $y = clipit $y;
 
       if (!($i % 200))
       {
-#        my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/fft%06d.png', $i));
-#        $plot->xyplot($graphx, $y);
-#        $plot->close();
+        my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/fft%06d.png', $i));
+        $plot->xyplot($graphx, $y);
+        $plot->close();
         print "$left $i ".($overlap*$size/$winsize)."\n";
       }
 
-      push @spects, $y->sum;
+      #they use the sum of squares, with a threshold on 3000, gonna check on that
+      push @spects, ($y*$y)->sum;
 
     #sleep 10;
 #    print "${left}:$right\n";
