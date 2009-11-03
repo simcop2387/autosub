@@ -14,6 +14,7 @@ $|++;
 
 our $winsize = 8192;
 our $overlap = 10;
+our $peaktol = 5.0;
 #they recommended hamming, gonna try it and their butterworth!
 my $window = gen_fft_window $winsize, "HAMMING";#, 2.5;
 
@@ -29,6 +30,7 @@ sub butterworth
 }
 
 my $graphx = sequence($winsize/2+1);
+my $zeroes = zeroes($winsize/2+1);
 
 my $pi = 3.141592;
 my $w = 2*$pi*$graphx/$winsize; #use graphx as the freq source for this
@@ -112,8 +114,11 @@ sub getfftw
 
       if (!($i % 200))
       {
+		my ($avg, $std) = fftstats($y);
         my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/fft%06d.png', $i));
         $plot->xyplot($graphx, $y);
+		$plot->xyplot($graphx, $zeroes+$avg, COLOR => "RED");
+		$plot->xyplot($graphx, $zeroes+$avg+$std*$peaktol, COLOR => "BLUE");
         $plot->close();
         print "$left $i ".($overlap*$size/$winsize)."\n";
       }
@@ -141,7 +146,14 @@ sub getfftw
   $plot->xyplot($peakx, $peakthres, SUBPAGE => 2, COLOR => "RED", XLAB => "smoothed peak counts", YLAB => "", CHARSIZE=>0.125);
   $plot->close();
 
-  return (\@spects, $peaks);
+  return (\@spects, $peaks->smoothlines);
+}
+
+sub fftstats
+{
+	my $spectrum = shift;
+	my ($avg, undef, undef, undef, undef, $std, undef) = $spectrum->statsover();
+	return ($avg, $std);
 }
 
 sub peaks
@@ -150,7 +162,7 @@ sub peaks
 	my $normalized = $spectrum/max($spectrum);
     my ($avg, undef, undef, undef, undef, $std, undef) = $normalized->statsover();
 
-	my $count = $normalized->getoutliers($avg, $std, 5.0);
+	my $count = $normalized->getoutliers($avg, $std, $peaktol);
 #	print "$count $avg $std\n";
 	return $count;
 }

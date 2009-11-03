@@ -32,17 +32,26 @@ my @ignore = ([1*60+16, 3*60+11], #ignore the opening music, 1:16-3:11
 my @voicemap;
 my $audio = FFTW::open($tmp);
 my $map0;
-{
-  my ($sums, $peaks) = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
+my $map1;
+my $mapmerge;
 
-  #Detect::autothresh($tmp, 0, $sums);
-  #$map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums, 1)));
-  $map0 = Detect::cleanup(Detect::checkpeaks($tmp, $peaks));
-}
+my ($sums, $peaks) = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
 
+Detect::autothresh($tmp, 0, $sums);
+$map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums, 1)));
+$map1 = Detect::cleanup(Detect::checkpeaks($tmp, $peaks));
+$mapmerge = Detect::mergemaps($map0, $map1);
+
+
+print "-"x100,"\n";
 print $map0,"\n";
+print "-"x100,"\n";
+print $map1,"\n";
+print "-"x100,"\n";
+print $mapmerge,"\n";
+print "-"x100,"\n";
 
-my @codes = Detect::collect($map0);
+my @codes = Detect::collect($mapmerge);
 
 
 ExportWav::makewavs($tmp, $audio, @codes);

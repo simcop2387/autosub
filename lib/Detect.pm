@@ -191,8 +191,9 @@ sub collect {
     my $i = -1;    #start at -1 for this
     my $start      = 0;
     my $finish     = 0;
-    my $collecting = 1;
+    my $collecting = 0;
     for my $sample ( @samples) {
+		$sample = $sample >= 1? 1:0;
         $i++;
 #        my $nextsample = $samples[$i+1] || "0";
 #        my $nextsample2 = $samples[$i+2] || "0";
@@ -268,6 +269,22 @@ sub checkpeaks
 	}
 
 	return $map;
+}
+
+sub mergemaps
+{
+	my @maps = @_;
+	my @res;
+	for my $map (@maps)
+	{
+		my $i = 0;
+		for my $s (split//,$map)
+		{
+			$res[$i++] += $s;
+		}
+	}
+
+	return join "", @res;
 }
 
 1;
