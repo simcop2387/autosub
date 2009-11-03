@@ -27,16 +27,17 @@ my $tmp = "tmp552";
 #PrepareAudio::prepareaudio($tmp);
 
 my @ignore = ([1*60+16, 3*60+11], #ignore the opening music, 1:16-3:11
-              [21*60+6, 22*60+26], [0, 76]);
+              [21*60+6, 22*60+26]); #, [0, 76]); #removing the ignore of the beginning for this method
 
 my @voicemap;
 my $audio = FFTW::open($tmp);
 my $map0;
 {
-  my $sums = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
+  my ($sums, $peaks) = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
 
-  Detect::autothresh($tmp, 0, $sums);
-  $map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums, 1)));
+  #Detect::autothresh($tmp, 0, $sums);
+  #$map0 = Detect::cleanup(Detect::cleanup(Detect::makemap($tmp, $sums, 1)));
+  $map0 = Detect::cleanup(Detect::checkpeaks($tmp, $peaks));
 }
 
 print $map0,"\n";

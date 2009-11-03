@@ -5,6 +5,7 @@ use PDL::Audio;
 use PDL::Graphics::PLplot;
 use Data::Dumper;
 use Clipcode;
+use Detect;
 
 use strict;
 use warnings;
@@ -94,6 +95,7 @@ sub getfftw
   my $ignores = processignores(shift);
 
   my @spects = ();
+  my $peaks = pdl [];
 
   my $size = nelem($pdl);
 
@@ -114,11 +116,11 @@ sub getfftw
         $plot->xyplot($graphx, $y);
         $plot->close();
         print "$left $i ".($overlap*$size/$winsize)."\n";
-		print "PEAKS: ".(peaks $y)."\n";
       }
 
       #they use the sum of squares, with a threshold on 3000, gonna check on that
-      push @spects, $y->sum;
+      $peaks = $peaks->append(peaks($y));
+	  push @spects, $y->sum;
 
     #sleep 10;
 #    print "${left}:$right\n";
@@ -126,18 +128,30 @@ sub getfftw
     else
     {
       push @spects, 0;
+	  $peaks=$peaks->append(0);
     }
   }
 
-  return \@spects;
+  my $peakx = sequence($peaks->nelem());
+  my $peakthres = zeroes($peaks->nelem)+$Detect::peakthresh;
+  my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/peakcnt.png', PAGESIZE=>[16000,800], SUBPAGES=>[1,2]);
+  $plot->xyplot($peakx, $peaks, SUBPAGE=>1, CHARSIZE=>0.125);
+  $plot->xyplot($peakx, $peaks->smoothlines, SUBPAGE=>2, CHARSIZE=>0.125);
+  $plot->xyplot($peakx, $peakthres, SUBPAGE => 1, COLOR => "RED", XLAB => "raw peak counts", YLAB => "", CHARSIZE=>0.125);
+  $plot->xyplot($peakx, $peakthres, SUBPAGE => 2, COLOR => "RED", XLAB => "smoothed peak counts", YLAB => "", CHARSIZE=>0.125);
+  $plot->close();
+
+  return (\@spects, $peaks);
 }
 
 sub peaks
 {
 	my $spectrum = shift;
-    ($avg, undef, undef, undef, undef, $std, undef) = $spectrum->statsover();
+	my $normalized = $spectrum/max($spectrum);
+    my ($avg, undef, undef, undef, undef, $std, undef) = $normalized->statsover();
 
-	my $count = $spectrum->getoutliers($avg, $std, 2);
+	my $count = $normalized->getoutliers($avg, $std, 5.0);
+#	print "$count $avg $std\n";
 	return $count;
 }
 

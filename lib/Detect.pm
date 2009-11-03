@@ -13,6 +13,7 @@ use List::MoreUtils "uniq";
 
 our $threshold = 40.3661824968879;
 our $target = 200;
+our $peakthresh = 135;
 
 sub makemap
 {
@@ -244,6 +245,29 @@ sub fullsamples
     my $index = shift;
     my $time = int( $index * $FFTW::winsize / $FFTW::overlap );
     $time;
+}
+
+sub checkpeaks
+{
+	my $tmp = shift;
+	my $peaks = shift;
+
+	my $t = $peaks->nelem();
+    my $map = ""; #start empty
+
+	for (0..$t-1)
+	{
+		if ($peaks->index($_) > $peakthresh)
+		{
+			$map .= "1";
+		}
+		else
+		{
+			$map .= "0";
+		}
+	}
+
+	return $map;
 }
 
 1;

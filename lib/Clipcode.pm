@@ -25,15 +25,51 @@ pp_def('myclip',
 			  %}'
 );
 
-pp_def('getouliers',
-	Pars => 'a(i); adev(); avg(); t(); []count()',
+
+#e is a small value to avoid divide by zero
+pp_def('getoutliers',
+	Pars => 'a(i); adev(); avg(); t(); [o]count()',
+    GenericTypes => [D],
 	Code => 'int q = 0;
-		loop(i) %{ double d = ($a() - $avg()) / $adev();
-	//reality says i should use the abosolute value here, to tell how many std devs away, but i want the sign, don't count those that are in the other direction
-	if (d >= $t())
+	double e = 0.0005;
+	if ($adev() > e)
 	{
-		q++; //add the count
-	}
-	%};
+		loop(i) %{ 
+		double d = ($a() - $avg()) / ($adev()+e);
+		if (d >= $t())
+		{
+			q++;
+		}
+		%}
+	};
 	$count() = q;'
+);
+
+pp_def('smoothlines',
+	Pars => 'a(i); [o]b(i)',
+	Code => 'double d1=0,d2=0,d3=0,d4=0,d5=0;
+		double t;
+	loop(i) %{
+		switch(i % 5)
+		{
+			case 0:
+				d1 = $a();
+				break;
+			case 1:
+				d2 = $a();
+				break;
+			case 2:
+				d3 = $a();
+				break;
+			case 3:
+				d4 = $a();
+				break;
+			case 4:
+				d5 = $a();
+				break;
+		}
+
+		t = (d1 + d2 + d3 + d4 + d5)/5;
+		$b() = t;
+	%};'
 );
