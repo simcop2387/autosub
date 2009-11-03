@@ -87,33 +87,6 @@ sub sign
   $_[0] > 0? 1 : -1;
 }
 
-sub clipit
-{
-  my $fltx = shift;
-
-  my $K = 0.6;
-
-  my $fthrd = $fltx->slice("0:".int($fltx->nelem/3));
-  my $sthrd = $fltx->slice(($fltx->nelem-1-int($fltx->nelem/3)).":".$fltx->nelem-1);
-  
-  my $fmax1 = $fthrd->abs()->max();
-  my $fmax2 = $sthrd->abs()->max();
-  my $C = $K * ($fmax1>$fmax2?$fmax2:$fmax1);
-
-  #this might need redoing in PDL::PP or something
-#  my @res;
-#  for my $i (0..$fltx->nelem-1)
-#  {
-#    my $val = $fltx->index($i);
-#    $val = ($val - $C*sign($val)) if ($val > $C || $val < -$C);
-#    push @res, $val;
-#  }
-
-  my $res = $fltx->myclip($C);
-
-  return $res;
-}
-
 sub getfftw
 {
   my $pdl = shift;
@@ -134,7 +107,6 @@ sub getfftw
       my $spect = getwindow($pdl->slice("${left}:$right"));
       my $y = $voicequant * $spect;
 #      $y = irfft $y;#OMG!
-      $y = clipit $y;
 
       if (!($i % 200))
       {
@@ -142,6 +114,7 @@ sub getfftw
         $plot->xyplot($graphx, $y);
         $plot->close();
         print "$left $i ".($overlap*$size/$winsize)."\n";
+		print "PEAKS: ".(peaks $y)."\n";
       }
 
       #they use the sum of squares, with a threshold on 3000, gonna check on that
@@ -159,11 +132,20 @@ sub getfftw
   return \@spects;
 }
 
+sub peaks
+{
+	my $spectrum = shift;
+    ($avg, undef, undef, undef, undef, $std, undef) = $spectrum->statsover();
+
+	my $count = $spectrum->getoutliers($avg, $std, 2);
+	return $count;
+}
+
 sub getwindow
 {
   my $slice = shift;
  
-  spectrum $slice, 1, $window;
+  spectrum $slice, undef, $window;
 }
 
 1;
