@@ -133,6 +133,7 @@ sub getfftw
 
       my $spect = getwindow($pdl->slice("${left}:$right"));
       my $y = $voicequant * $spect;
+#      $y = irfft $y;#OMG!
       $y = clipit $y;
 
       if (!($i % 200))
@@ -144,7 +145,7 @@ sub getfftw
       }
 
       #they use the sum of squares, with a threshold on 3000, gonna check on that
-      push @spects, ($y*$y)->sum;
+      push @spects, $y->sum;
 
     #sleep 10;
 #    print "${left}:$right\n";

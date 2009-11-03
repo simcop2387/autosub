@@ -24,3 +24,16 @@ pp_def('myclip',
 			  $b() = $a();
 			  %}'
 );
+
+pp_def('getouliers',
+	Pars => 'a(i); adev(); avg(); t(); []count()',
+	Code => 'int q = 0;
+		loop(i) %{ double d = ($a() - $avg()) / $adev();
+	//reality says i should use the abosolute value here, to tell how many std devs away, but i want the sign, don't count those that are in the other direction
+	if (d >= $t())
+	{
+		q++; //add the count
+	}
+	%};
+	$count() = q;'
+);
