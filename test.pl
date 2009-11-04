@@ -39,7 +39,7 @@ my $mapmerge;
 
 my ($sums, $peaks) = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
 
-Detect::autothresh($tmp, 0, $sums);
+Detect::autothresh($tmp, -100, $sums);
 $map0 = Detect::cleanup((Detect::makemap($tmp, $sums, 1)));
 $map1 = Detect::cleanup(Detect::checkpeaks($tmp, $peaks));
 $mapmerge = Detect::mergemaps($map0, $map1);

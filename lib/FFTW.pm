@@ -13,7 +13,7 @@ use warnings;
 $|++;
 
 our $winsize = 8192;
-our $overlap = 13;
+our $overlap = 16;
 our $peaktol = 7.5;
 #they recommended hamming, gonna try it and their butterworth!
 my $window = gen_fft_window $winsize, "HAMMING";#, 2.5;
@@ -120,6 +120,16 @@ sub getfftw
 		$plot->xyplot($graphx, $zeroes+$avg, COLOR => "RED");
 		$plot->xyplot($graphx, $zeroes+$avg+$std*$peaktol, COLOR => "BLUE");
         $plot->close();
+
+		my $ceps = cepstrum($y); #get the cepstrum of the signal... hope this works
+		my $graphxc = sequence($ceps->nelem);
+        
+		$plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => sprintf($temp.'/cep%06d.png', $i));
+        $plot->xyplot($graphxc, $ceps);
+#		$plot->xyplot($graphx, $zeroes+$avg, COLOR => "RED");
+#		$plot->xyplot($graphx, $zeroes+$avg+$std*$peaktol, COLOR => "BLUE");
+        $plot->close();
+
         print "$left $i ".($overlap*$size/$winsize)."\n";
       }
 
@@ -142,7 +152,7 @@ sub getfftw
   my ($smoothavg, $smoothstd) = fftstats($peaks->smoothlines);
   my ($roughavg,  $roughstd) = fftstats($peaks);
   
-  $Detect::peakthresh = $smoothavg;#-0.25*$smoothstd; #for now!
+  $Detect::peakthresh = $smoothavg-0.25*$smoothstd; #for now!
 
   my $peakthres = $zeroes+$Detect::peakthresh;
   
@@ -188,6 +198,20 @@ sub getwindow
   my $slice = shift;
  
   spectrum $slice, undef, $window;
+}
+
+#this concept is really fucking weird
+#http://en.wikipedia.org/wiki/Cepstrum
+#but its incredibly easy to do with what i've got
+#quefrency makes little to no intuitive sense to me, but i'm trying it anyway
+sub cepstrum
+{
+	my $spectrum = shift;
+	
+	my $phases = ones($spectrum->nelem());
+	my $rfft = spectrum
+	my $cepstrum = ;
+	$cepstrum
 }
 
 1;
