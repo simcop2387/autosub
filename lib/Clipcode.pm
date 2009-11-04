@@ -51,6 +51,33 @@ pp_def('getoutliers',
 	$count() = q;'
 );
 
+pp_def('downsample',
+	Pars => 'a(i); t(); [o]b(n)',
+    GenericTypes => [D],
+	Code => 'double t=$t();
+	double tmp;
+	int limit = $SIZE(n)/$t();
+	register int j;
+	register int k = $t();
+	double *bp = $P(b);
+	double *ap = $P(a);
+
+	for (j = 0; j < limit; j++)
+	{
+		bp[j] = 0.0;
+		for (k = 0; k < $t(); k++)
+		{
+			bp[j] += ap[j+k];
+		}
+	}
+	for (j = limit; j < $SIZE(n); j++)
+	{
+		bp[j] = 0.0;
+	}
+');
+
+
+
 pp_def('smoothlines',
 	Pars => 'a(i); [o]b(i)',
 	Code => 'double d1=0,d2=0,d3=0,d4=0,d5=0;

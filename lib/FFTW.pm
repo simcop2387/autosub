@@ -207,10 +207,7 @@ sub getwindow
 sub cepstrum
 {
 	my $spectrum = shift;
-	
-	my $phases = ones($spectrum->nelem());
-	my $rfft = spectrum
-	my $cepstrum = ;
+	my $cepstrum = $spectrum->downsample(2);
 	$cepstrum
 }
 
