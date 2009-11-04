@@ -139,18 +139,22 @@ sub getfftw
 
   my $peakx = sequence($peaks->nelem());
   my $zeroes = zeroes($peaks->nelem);
-  my $peakthres = $zeroes+$Detect::peakthresh;
   my ($smoothavg, $smoothstd) = fftstats($peaks->smoothlines);
   my ($roughavg,  $roughstd) = fftstats($peaks);
+  
+  $Detect::peakthresh = $smoothavg;#-0.25*$smoothstd; #for now!
+
+  my $peakthres = $zeroes+$Detect::peakthresh;
+  
   my $plot = PDL::Graphics::PLplot->new(DEV => 'png', FILE => $temp.'/peakcnt.png', PAGESIZE=>[16000,800], SUBPAGES=>[1,2]);
 
-  $plot->xyplot($peakx, $peaks, SUBPAGE=>1, CHARSIZE=>0.125);
+  $plot->xyplot($peakx, $peaks, SUBPAGE=>1, COLOR=> "BLACK", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $peakthres, SUBPAGE => 1, COLOR => "RED", XLAB => "raw peak counts", YLAB => "", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $zeroes+$roughavg, SUBPAGE => 1, COLOR => "GREEN", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $zeroes+$roughavg+$roughstd, SUBPAGE => 1, COLOR => "BLUE", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $zeroes+$roughavg-$roughstd, SUBPAGE => 1, COLOR => "BLUE", CHARSIZE=>0.125);
 
-  $plot->xyplot($peakx, $peaks->smoothlines, SUBPAGE=>2, CHARSIZE=>0.125);
+  $plot->xyplot($peakx, $peaks->smoothlines, SUBPAGE=>2, COLOR=>"BLACK", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $peakthres, SUBPAGE => 2, COLOR => "RED", XLAB => "smoothed peak counts", YLAB => "", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $zeroes+$smoothavg, SUBPAGE => 2, COLOR => "GREEN", CHARSIZE=>0.125);
   $plot->xyplot($peakx, $zeroes+$smoothavg+$smoothstd, SUBPAGE => 2, COLOR => "BLUE", CHARSIZE=>0.125);

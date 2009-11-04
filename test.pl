@@ -9,6 +9,7 @@ use PDL;
 use PDL::Audio;
 use File::Temp;
 use Data::Dumper;
+use List::Util qw(reduce);
 
 use PrepareAudio; #should probably get this to export things, look nicer in here
 use FFTW;
@@ -16,6 +17,7 @@ use Detect;
 use ExportWav;
 use DoJulius;
 use MakeAss;
+
 
 our $PP_VERBOSE=1;
 
@@ -61,5 +63,8 @@ ExportWav::makewavs($tmp, $audio, @codes);
 my $i = 0;
 my @results = map {{finish=> $_->[1], start=>$_->[0], sentence1=>$i++, length=>($_->[1]-$_->[0])/16000.0}} @codes;
 
+my $sublength = reduce {$a + $b} map { $_->{length} } @results;
+
 print Dumper(\@results);
+print "Total sub length: $sublength seconds\n";
 MakeAss::writeass($tmp, "fake6.ass", @results);
