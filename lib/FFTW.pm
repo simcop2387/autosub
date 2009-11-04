@@ -14,7 +14,7 @@ $|++;
 
 our $winsize = 8192;
 our $overlap = 10;
-our $peaktol = 5.0;
+our $peaktol = 10.0;
 #they recommended hamming, gonna try it and their butterworth!
 my $window = gen_fft_window $winsize, "HAMMING";#, 2.5;
 
@@ -125,7 +125,7 @@ sub getfftw
 
       #they use the sum of squares, with a threshold on 3000, gonna check on that
       $peaks = $peaks->append(peaks($y));
-	  push @spects, $y->sum;
+	  push @spects, sqrt($y->sum);
 
     #sleep 10;
 #    print "${left}:$right\n";

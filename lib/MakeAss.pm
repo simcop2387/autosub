@@ -19,8 +19,8 @@ sub writedialog
 #;Dialogue: 0,0:00:19.40,0:00:21.14,Default,,0000,0000,0000,,A courageous heart and deduction power!
   my ($startsec, $endsec) = ($code->{start}/16000, $code->{finish}/16000);
 
-  my $startfrac = int(($startsec-int($startsec))*100)/100; 
-  my $endfrac   = int(($endsec-  int($endsec))  *100)/100; 
+  my $startfrac = sprintf "%0.2f", int(($startsec-int($startsec))*100)/100; 
+  my $endfrac   = sprintf "%0.2f", int(($endsec-  int($endsec))  *100)/100; 
 
   $startfrac =~ s/^0*//;
   $endfrac =~ s/^0*//;

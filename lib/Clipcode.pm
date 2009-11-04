@@ -31,17 +31,23 @@ pp_def('getoutliers',
 	Pars => 'a(i); adev(); avg(); t(); [o]count()',
     GenericTypes => [D],
 	Code => 'int q = 0;
-	double e = 0.0005;
-	if ($adev() > e)
-	{
-		loop(i) %{ 
-		double d = ($a() - $avg()) / ($adev()+e);
-		if (d >= $t())
+
+	double thresh = $adev() * $t();
+	char above = 0;
+
+	loop(i) %{ 
+		double d = $a()-thresh;
+		if ((d < 0) && (above == 1))
 		{
-			q++;
-		}
-		%}
-	};
+		   q++;
+		   above=0;
+		};
+		
+		if ((d > 0) && (above == 0))
+		{
+		   above=1;
+		};
+	%}
 	$count() = q;'
 );
 
