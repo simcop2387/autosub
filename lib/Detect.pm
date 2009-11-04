@@ -13,7 +13,7 @@ use List::MoreUtils "uniq";
 
 our $threshold = 40.3661824968879;
 our $target = 200;
-our $peakthresh = 20;
+our $peakthresh = 30;
 
 sub makemap
 {
