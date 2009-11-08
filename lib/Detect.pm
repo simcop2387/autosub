@@ -13,7 +13,7 @@ use Data::Dumper;
 use List::MoreUtils "uniq";
 
 our $threshold = 40.3661824968879;
-our $target = 350;
+our $target = 200;
 our $peakthresh = 30;
 our $pitchthresh = 20; #deltaHz? need good value here, dunno one yet
 

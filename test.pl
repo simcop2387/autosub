@@ -39,7 +39,7 @@ my $mapmerge;
 
 my ($sums, $peaks, $pitchdiff) = FFTW::getfftw($audio, $tmp, \@ignore); #ignore will set the fftw for the section to 0,0,0,0,...,0 so that it'll be silent
 
-Detect::autothresh($tmp, -100, $sums, $pitchdiff);
+Detect::autothresh($tmp, -200, $sums, $pitchdiff);
 $map0 = Detect::cleanup((Detect::makemap($tmp, $sums, 1)));
 $map1 = Detect::cleanup(Detect::checkpeaks($tmp, $peaks));
 $mapmerge = Detect::mergemaps($map0, $map1);
@@ -67,4 +67,4 @@ my $sublength = reduce {$a + $b} map { $_->{length} } @results;
 
 print Dumper(\@results);
 print "Total sub length: $sublength seconds\n";
-MakeAss::writeass($tmp, "fake7+pitch.ass", @results);
+MakeAss::writeass($tmp, "fake8+pitch.ass", @results);
