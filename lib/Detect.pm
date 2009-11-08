@@ -6,6 +6,7 @@ use diagnostics;
 
 use PDL;
 use FFTW;
+use PrepareAudio;
 
 use Data::Dumper;
 
@@ -14,6 +15,7 @@ use List::MoreUtils "uniq";
 our $threshold = 40.3661824968879;
 our $target = 350;
 our $peakthresh = 30;
+our $pitchthresh = 20; #deltaHz? need good value here, dunno one yet
 
 sub makemap
 {
@@ -51,6 +53,7 @@ sub autothresh
   my $time = 100 - shift;
   my $i = 0;
   my $sums_ = shift; #@spects
+  #my $pitchdiff = shift; #solely passed to collect
 #  my @voices = map {Detect::hasvoice($_, $i++)->[1]} @spects; #i only want the sums
   
   my $sums = pdl [uniq(grep {$_ != 0} @$sums_)];
@@ -134,16 +137,6 @@ sub autothresh
 
 sub hasvoice {
     my $sample = shift;
-    my $index  = shift;    #solely for printing out time indexes to check!
-
-    #my $sum = $sample; # ->sum; #optimizing it for this since i'm doing it repeatedly
-
-    #my $left = int $i*$winsize/$overlap;
-#    my $time =
-#      ( $index * $FFTW::winsize / $FFTW::overlap ) /
-#      16000;               #(index * ) / samples per second
-
-#    print $time, " :: ", $sum, " :: ", $sum > 3 ? 1 : 0, "\n";
 
     return 1 if $sample > $threshold;
     return 0;
@@ -181,8 +174,19 @@ sub cleanup {
     return $_;
 }
 
+sub pitchdiff {
+	my $pitchsample = shift;
+	
+	if ($pitchsample > $pitchthresh)
+	{
+		return 1
+	}
+	return 0;
+}
+
 sub collect {
     my $map = shift;
+	my $pitch = shift;
     my @codes;
 
     my @samples = split//,$map;
@@ -197,6 +201,8 @@ sub collect {
         $i++;
 #        my $nextsample = $samples[$i+1] || "0";
 #        my $nextsample2 = $samples[$i+2] || "0";
+
+		$sample = 0 if ($collecting == 1 && defined($pitch) && pitchdiff($pitch->index($i))); #force a new line if the change was too much
         next if ( $sample == 1 && $collecting == 1 );    #don't do anything
 
 #	 if ( $sample == 0 && $collecting == 1 && $nextsample == 1 && $nextsample2 == 1) {
@@ -234,7 +240,7 @@ sub trimcodes
 
   for my $code (@codes)
   {
-    my $length = (fullsamples($code->[1]) - fullsamples($code->[0]))/16000;
+    my $length = (fullsamples($code->[1]) - fullsamples($code->[0]))/$PrepareAudio::samplerate;
     push @trimmed, [(map {fullsamples($_)} @$code), $length] if ($length >= 1.0); #get ones that 1 or more seconds!
   }
 

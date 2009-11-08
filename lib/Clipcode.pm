@@ -52,30 +52,70 @@ pp_def('getoutliers',
 );
 
 pp_def('downsample',
-	Pars => 'a(i); t(); [o]b(n)',
+	Pars => 'a(i); t(); [o]b(i)',
     GenericTypes => [D],
-	Code => 'double t=$t();
-	double tmp;
-	int limit = $SIZE(n)/$t();
+	Code => 'register int limit = $SIZE(i)/$t();
 	register int j;
 	register int k = $t();
 	double *bp = $P(b);
 	double *ap = $P(a);
+	int t = (int) $t();
 
 	for (j = 0; j < limit; j++)
 	{
 		bp[j] = 0.0;
 		for (k = 0; k < $t(); k++)
 		{
-			bp[j] += ap[j+k];
+			bp[j] += ap[j*t+k];
 		}
+		bp[j]=bp[j]/$t();
 	}
-	for (j = limit; j < $SIZE(n); j++)
+	for (j = limit; j < $SIZE(i); j++)
 	{
 		bp[j] = 0.0;
 	}
 ');
 
+pp_def('testalg', 
+		Pars => 'pitch(i); lookbehind(); [o]diff(i)',
+		GenericTypes => [D],
+		Code => '
+		register int j = 0;
+		double *pp = $P(pitch);
+		double *op = $P(diff);
+
+		for (j = 0; j < $SIZE(i); j++)
+		{
+			int past = (int) (j-$lookbehind());
+			if (past >= 0)
+			{
+			  op[j] = pp[j] - pp[past];
+			}
+			else
+			{
+			  op[j] = 0.0;
+			}
+		}');
+
+pp_def('movingaverage',
+	Pars => 'a(i); n(); [o]b(i)',
+    GenericTypes => [D],
+	Code => 'int n = $n();
+	double *buf = calloc(n, sizeof(double));
+	double t;
+	register int j;
+
+	loop(i) %{
+		buf[i%n] = $a();
+		t=0.0;
+		for (j = 0; j < n; j++)
+		{
+		  t += buf[j];
+		}
+		$b() = t / $n();
+	%}
+	free(buf);
+	');
 
 
 pp_def('smoothlines',
