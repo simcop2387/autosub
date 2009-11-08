@@ -16,6 +16,7 @@ our $threshold = 40.3661824968879;
 our $target = 200;
 our $peakthresh = 30;
 our $pitchthresh = 20; #deltaHz? need good value here, dunno one yet
+our $peakratio = -0.25;
 
 sub makemap
 {

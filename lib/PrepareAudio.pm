@@ -11,7 +11,7 @@ sub getaudio
   my $tempdir = shift;
   my $temp = $tempdir."/audiodump.wav";
 
-  system("/usr/bin/mplayer", "-ao", "pcm:file=$temp", $input) == 0
+  system("/usr/bin/mplayer", "-ao", "pcm:fast:file=$temp", "-vo", "null", "-vc", "null", $input) == 0
 	or die "Couldn't extract audio, $?";
   return $temp;
 }

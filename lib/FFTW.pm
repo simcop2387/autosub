@@ -161,7 +161,7 @@ sub getfftw
   my ($smoothavg, $smoothstd) = fftstats($peaks->smoothlines);
   my ($roughavg,  $roughstd) = fftstats($peaks);
   
-  $Detect::peakthresh = $smoothavg-0.25*$smoothstd; #for now!
+  $Detect::peakthresh = $smoothavg-$Detect::peakratio*$smoothstd; #for now!
 
   my $peakthres = $zeroes+$Detect::peakthresh;
   
